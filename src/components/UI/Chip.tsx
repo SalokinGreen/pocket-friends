@@ -1,6 +1,14 @@
-import React, { useState } from "react";
+import React, { Key, MouseEventHandler, useState } from "react";
 
-const Chip = ({ text, key, click }) => {
+const Chip = ({
+  text,
+  key,
+  click,
+}: {
+  text: String;
+  key: Key;
+  click: MouseEventHandler<HTMLDivElement>;
+}) => {
   const getRandomColor = () => {
     const colors = [
       "#FF5733",

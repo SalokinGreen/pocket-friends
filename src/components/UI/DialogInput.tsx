@@ -3,30 +3,43 @@ import styles from "./UI.module.css";
 import Button from "./Button";
 import Dialog from "./Dialog";
 import Input from "./Input";
+
+interface DialogInputProps {
+  open: boolean;
+  onClose: () => void;
+  onSend: (value: string) => void;
+  title: string;
+  description: string;
+}
+
 export default function DialogInput({
   open,
   onClose,
   onSend,
   title,
   description,
-}) {
+}: DialogInputProps) {
   const [value, setValue] = useState("");
-  const dialogRef = useRef(null);
-  //   useEffect(() => {
-  //     if (open) {
-  //       dialogRef.current.focus();
-  //     }
-  //   }, [open]);
+  const dialogRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open && dialogRef.current) {
+      dialogRef.current.focus();
+    }
+  }, [open]);
+
   const handleSend = () => {
     onSend(value);
     setValue("");
     onClose();
   };
-  const handleEnter = (e) => {
+
+  const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSend();
     }
   };
+
   return (
     <Dialog open={open} onClose={onClose}>
       <div className={styles.dialogInput}>
@@ -35,7 +48,9 @@ export default function DialogInput({
         <Input
           placeholder="Type a message..."
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e: { target: { value: React.SetStateAction<string> } }) =>
+            setValue(e.target.value)
+          }
           ref={dialogRef}
           handleEnter={handleEnter}
         />

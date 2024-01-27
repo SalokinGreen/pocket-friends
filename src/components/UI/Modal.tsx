@@ -1,12 +1,26 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, FC, ReactNode } from "react";
 
 // style
 import styles from "./UI.module.css";
 import Exit from "./Exit";
 
-const Modal = ({ isOpen, onClose, children, size = "small", title = "" }) => {
+type ModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  children: ReactNode;
+  size?: "small" | "medium" | "big";
+  title?: string;
+};
+
+const Modal: FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  children,
+  size = "small",
+  title = "",
+}) => {
   // click event listener
-  const modalRef = useRef(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     document.addEventListener("click", handleClick, true);
     return () => {
@@ -14,8 +28,8 @@ const Modal = ({ isOpen, onClose, children, size = "small", title = "" }) => {
     };
   }, []);
   // click event handler
-  const handleClick = (e) => {
-    if (modalRef.current && !modalRef.current.contains(e.target)) {
+  const handleClick = (e: MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
       onClose();
     }
   };

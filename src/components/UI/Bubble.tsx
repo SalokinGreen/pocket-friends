@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./UI.module.css";
 
-export default function Bubble({ children, i, deleteBubble }) {
+export default function Bubble({
+  children,
+  i,
+  deleteBubble,
+}: {
+  children: React.ReactNode;
+  i: number;
+  deleteBubble: (index: number) => void;
+}) {
   const [text, setText] = useState(children);
   useEffect(() => {
     let newText = text;

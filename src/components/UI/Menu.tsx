@@ -1,12 +1,18 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, ReactNode } from "react";
 import styles from "./UI.module.css";
-// position = { x: 0, y: 0 }
-export default function Menu({ children, position, onClose }) {
-  const menuRef = useRef(null);
+
+type MenuProps = {
+  children: ReactNode;
+  position: { x: number; y: number };
+  onClose: () => void;
+};
+
+export default function Menu({ children, position, onClose }: MenuProps) {
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickAway = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+    const handleClickAway = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         onClose();
       }
     };

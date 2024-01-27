@@ -1,7 +1,15 @@
 import React, { useRef, useEffect } from "react";
 import styles from "./UI.module.css";
 
-export default function PopUP({ open, setOpen, title, text, i }) {
+interface PopUpProps {
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  title: string;
+  text: string;
+  i: number;
+}
+
+export default function PopUP({ open, setOpen, title, text, i }: PopUpProps) {
   // click event listener
   useEffect(() => {
     document.addEventListener("click", handleClick, true);
@@ -10,7 +18,7 @@ export default function PopUP({ open, setOpen, title, text, i }) {
     };
   }, []);
   // click event handler
-  const handleClick = (e) => {
+  const handleClick = (e: MouseEvent) => {
     setOpen(false);
   };
 
