@@ -49,7 +49,7 @@ const Modal: FC<ModalProps> = ({
       ref={modalRef}
     >
       <div className={styles.modalHeader}>
-        <Exit onClick={onClose}>X</Exit>
+        {/* <Exit onClick={onClose}>X</Exit> */}
 
         <div className={styles.modalTitle}>{title}</div>
       </div>

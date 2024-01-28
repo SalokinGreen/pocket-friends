@@ -2,7 +2,7 @@ import React, { ReactNode, MouseEventHandler } from "react";
 import styles from "./UI.module.css";
 
 type ExitProps = {
-  onClick: MouseEventHandler<HTMLButtonElement>;
+  onClick: () => void;
   children: ReactNode;
 };
 

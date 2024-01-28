@@ -43,6 +43,7 @@
   /* scrollbar */
   scrollbar-width: thin;
   scrollbar-color: #004c4c transparent;
+  z-index: 100;
 }
 .modal::-webkit-scrollbar {
   width: 5px;
