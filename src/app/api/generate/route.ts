@@ -125,6 +125,61 @@ const pro = {
   num_logprobs: 10,
   order: [3, 4, 0],
 };
+const insani = {
+  temperature: 1.14,
+  max_length: 150,
+  min_length: 1,
+  tail_free_sampling: 0.929,
+  repetition_penalty: 1.8,
+  repetition_penalty_range: 6144,
+  repetition_penalty_slope: 2,
+  repetition_penalty_frequency: 0,
+  repetition_penalty_presence: 0,
+  phrase_rep_pen: "aggressive",
+  mirostat_tau: 6,
+  mirostat_lr: 0.255,
+  bad_words_ids: [
+    [3],
+    [49356],
+    [1431],
+    [31715],
+    [34387],
+    [20765],
+    [30702],
+    [10691],
+    [49333],
+    [1266],
+    [19438],
+    [43145],
+    [26523],
+    [41471],
+    [2936],
+    [85, 85],
+    [49332],
+    [7286],
+    [1115],
+  ],
+  stop_sequences: [[24], [23], [21]],
+  generate_until_sentence: true,
+  use_string: true,
+  prefix: "vanilla",
+  logit_bias_exp: [
+    {
+      sequence: [23],
+      bias: -0.08,
+      ensure_sequence_finish: false,
+      generate_once: false,
+    },
+    {
+      sequence: [21],
+      bias: -0.08,
+      ensure_sequence_finish: false,
+      generate_once: false,
+    },
+  ],
+  num_logprobs: 10,
+  order: [8, 3, 0],
+};
 export async function POST(request: Request) {
   const req = await request.json();
   const context = req.context;
@@ -140,7 +195,7 @@ export async function POST(request: Request) {
         "https://api.novelai.net/ai/generate",
         {
           input: context,
-          parameters: pro,
+          parameters: insani,
           model: req.model,
         },
         {

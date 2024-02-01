@@ -3,20 +3,19 @@ import React from "react";
 import styles from "./Main.module.css";
 import Image from "next/image";
 import Chip from "../UI/Chip";
-interface MapProps {
+interface LocationProps {
   name: string;
   types: string[];
   description: string;
   image: string;
+  level: number;
 }
-interface WorldMapProps {
-  map: MapProps[];
-}
+
 export default function WorldMap({
   map,
   onClick,
 }: {
-  map: MapProps[];
+  map: LocationProps[];
   onClick: (find: string) => void;
 }) {
   return (
@@ -37,15 +36,18 @@ export default function WorldMap({
                 />
               </div>
               <div className={styles.mapItemHeader}>
-                <h2>{location.name}</h2>
+                <div className={styles.mapItemHead}>
+                  <h2>{location.name}</h2>
+                  <p>{`lvl. ${location.level}`}</p>
+                </div>
                 <div className={styles.mapItemTypes}>
-                  {location.types.map((type, key) => (
+                  {/* {location.types.map((type, key) => (
                     <Chip
                       key={key}
                       text={type}
                       click={() => console.log()}
                     ></Chip>
-                  ))}
+                  ))} */}
                 </div>
                 <p>{location.description}</p>
               </div>

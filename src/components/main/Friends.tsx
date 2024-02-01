@@ -9,6 +9,16 @@ interface FriendProps {
   description: string;
   appearance: string;
   image: string;
+  level: number;
+  pocket: boolean;
+  xp: number;
+  stats: {
+    hp: number;
+    hpMax: number;
+    attack: number;
+    defense: number;
+    speed: number;
+  };
 }
 export default function Friends({
   friends,
@@ -34,7 +44,10 @@ export default function Friends({
             />
           </div>
           <div className={styles.friendsItemHeader}>
-            <h2>{friend.name}</h2>
+            <div className={styles.friendsItemHead}>
+              <h2>{friend.name}</h2>
+              <p>{`lvl. ${friend.level}`}</p>
+            </div>
             <div className={styles.friendsItemTypes}>
               {friend.types.map((type, key) => (
                 <Chip key={key} text={type} click={() => console.log()} />

@@ -74,12 +74,17 @@ function cleanString(string: string) {
   while (string.includes("\n\n")) {
     string = string.replace("\n\n", "\n");
   }
-  string.replace(" \n", "\n");
-  string.replace("\n ", "\n");
+  while (string.includes(" \n")) {
+    string = string.replace(" \n", "\n");
+  }
+  while (string.includes("\n ")) {
+    string = string.replace("\n ", "\n");
+  }
+
   while (string.includes("  ")) {
     string = string.replace("  ", " ");
   }
-  // string = string.trim();
+  string = string.trim();
 
   return string;
 }

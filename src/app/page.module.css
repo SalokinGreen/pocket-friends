@@ -20,6 +20,7 @@
   align-items: flex-start;
   max-width: 255px;
   gap: 1rem;
+  align-items: center;
 }
 .modalHeader {
   display: flex;
@@ -31,6 +32,13 @@
 .modalBody {
   display: flex;
   flex-direction: column;
+}
+.modalFooter {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 .header {
   display: flex;

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import styles from "./page.module.css";
 import Button from "@/components/UI/Button";
@@ -10,6 +10,8 @@ import buildContext from "@/utils/front/buildContext";
 import Modal from "@/components/UI/Modal";
 import JSZip from "jszip";
 import Friends from "@/components/main/Friends";
+import Notifications from "@/components/UI/Notifications";
+import Fight from "@/components/main/Fight";
 interface LocationProps {
   name: string;
   types: string[];
@@ -30,76 +32,19 @@ interface FriendProps {
   description: string;
   appearance: string;
   image: string;
+  pocket: boolean;
+  level: number;
+  xp: number;
+  stats: {
+    hp: number;
+    hpMax: number;
+    attack: number;
+    defense: number;
+    speed: number;
+  };
 }
 const map: LocationProps[] = [...locations];
-const fightContext = `⁂
-Mailman vs Mad Dog
-----
-Name: Mailman
-Type: normal
-Location: suburbs
-Description: The friendly mailman who always delivers your mail. He never misses, not even during a thunderstorm or a blizzard.
-Appearance: Mailman, 1 man, friendly, nosy, white and blue uniform
-----
-Name: Mad Dog
-Type: darkness
-Location: slums
-Description: This hound has gone mad and is looking for a fight. He's dangerous, but he's also got a lot of money in its pockets from his victims.
-Appearance: Mad Dog, 1 dog, mutt, mean, strong, short tempered, sharp claws
-***
-Mailman attacks Mad Dog
-Traits: weak attack, effective
-Description: The mailman grabs a big package and smashes it over Mad Dog's head, stunning him for a few moments.
-***
-Mad Dog attacks Mailman
-Traits: strong attack, ineffective
-Description: The dog tears into the mailman, breaking his arm.
-⁂
-Grandpa vs Hobo
-----
-Name: Grandpa
-Type: normal
-Location: suburbs
-Description: The old man with the silver mustache who loves kids. He loves to tell stories, but his memory has gotten better over the years, so he tells the same stories each day.
-Appearance: Grandpa, 1 old man, clean, friendly, bushy silver mustache
-----
-Name: Hobo
-Type: darkness
-Location: slums
-Description: A smelly bum who lives on the streets. They'll mug you if you don't watch out.
-Appearance: Hobo, 1 man, dirty, poor, homeless, ugly, torn clothes
-***
-Grandpa attacks Hobo
-Traits: average attack, effective
-Description: Grandpa slowly walks over to Hobo and hits his private parts with his cane.
-***
-Hobo attacks Grandpa
-Traits: weak attack, ineffective
-Description: Hobo laughs at Grandpa before spitting in his eye.
-⁂
-Street Dealer vs Celeb Chef
-----
-Name: Street Dealer
-Type: darkness
-Location: slums
-Description: Dealers have a reputation for being dangerous because they don't care who you are. They'll sell anything to anyone.
-Appearance: Street Dealer, 1 woman, greedy, poor, heavy jewelry, expensive clothes, long earrings, loose skirt
-----
-Name: Celeb Chef
-Type: famous
-Location: gated community
-Description: You may not have heard of the famed chef, but after one bite of his food, you won't ever forget him.
-Appearance: Celeb Chef, 1 human, short, cute, white tuxedo, chefs hat, trim goatee
-***
-Celeb Chef attacks Street Dealer
-Traits: strong attack, normal effect
-Description: The Celeb Chef runs up and whacks the dealer's hand so she'll stop shaking so much.
-***
-Street Dealer attacks Celeb Chef
-Traits: normal attack, effective
-Description: The dealer grabs her bag of stuff, and jabs it into the chef. The contents break a few of his teeth.
-⁂
-`;
+
 export default function Home() {
   const [foundFriend, setFoundFriend] = useState<FriendProps>({
     name: "",
@@ -108,26 +53,55 @@ export default function Home() {
     description: "",
     appearance: "",
     image: "",
+    pocket: false,
+    level: 1,
+    xp: 0,
+    stats: {
+      hp: 0,
+      hpMax: 0,
+      attack: 0,
+      defense: 0,
+      speed: 0,
+    },
   });
   const [friends, setFriends] = useState<FriendProps[]>([]);
   const [pockets, setPockets] = useState<FriendProps[]>([]);
   const [friendFound, setFriendFound] = useState(false);
   const [tab, setTab] = useState(0);
+  const [playerStats, setPlayerStats] = useState({
+    level: 1,
+    pocketSpace: 1,
+    money: 0,
+    items: [],
+  });
+  const [notifications, setNotifications] = useState<string[]>([]);
+  useEffect(() => {
+    if (notifications.length > 5) {
+      const newNotifications = [...notifications];
+      const remove = notifications.length - 5;
+      newNotifications.splice(0, remove);
+      setNotifications(newNotifications);
+    }
+  }, [notifications]);
+
   const generate = (context: string, friend: FriendProps) => {
     axios
       .post("/api/generate", {
         context: context,
-        key: "",
+        key: "NAIKEY",
         gens: 1,
         model: "kayra-v1",
       })
       .then((res) => {
         const result = res.data.results[0];
-        //  get first line
-        const name = result.split("\n")[0];
+        //  get first line and remove space at the start
+        const name = result.split("\n")[0].trim();
         // Get Description: line
-        const description = result.split("Description:")[1].split("\n")[0];
-        const appearance = result.split("Appearance:")[1].split("\n")[0];
+        const description = result
+          .split("Description:")[1]
+          .split("\n")[0]
+          .trim();
+        const appearance = result.split("Appearance:")[1].split("\n")[0].trim();
         console.log(name, description, appearance);
         setFoundFriend({
           ...friend,
@@ -140,6 +114,7 @@ export default function Home() {
           name: name,
           description: description,
           appearance: appearance,
+          stats: generateStats(friend.types, friend.level),
         });
       })
 
@@ -153,7 +128,7 @@ export default function Home() {
         "/api/generateImage",
         {
           prompt: prompt,
-          key: "",
+          key: "NAIKEY",
         }
         // { responseType: "blob" }
       )
@@ -168,36 +143,30 @@ export default function Home() {
       });
   };
   const findPocketFriend = (find: string) => {
-    const search = map.find((item) => item.name === find);
+    const search = map.find((location) => location.name === find);
     console.log(search);
     if (!search) return;
+    notifications.push(`You're searching for more pocket friends!`);
 
     const foundTypes: ClassProps[] = search?.types.map((type: string) => {
       return types[type];
     });
     console.log(foundTypes);
+    const newType = getType(search.level);
+
     const foundFriends = friendsIndex.filter((friend) => {
-      return friend.types.some((type) => search.types.includes(type));
+      // return friend.types.some((type) => search.types.includes(type));
+      return friend.types.includes(newType);
     });
     console.log(foundFriends);
     // get new data
-    const newType =
-      search.types[Math.floor(Math.random() * search.types.length)];
-    setFoundFriend({
-      name: "",
-      types: [newType],
-      location: [search.name.toLowerCase()],
-      description: "",
-      appearance: "",
-      image: "",
-    });
 
     const context = buildContext(
       `----
 Pocket Friends
-Pocket friends are creatures and people you can fight and catch.`,
+Pocket friends are creatures and people you can fight and catch. All the pocket friends have special abilities and talents tailored to whom they are.`,
       search,
-      foundTypes,
+      [types[newType]],
       foundFriends,
       8000,
       `----\nType: ${newType}\nLocation: ${search.name.toLowerCase()}\nName:`
@@ -210,26 +179,140 @@ Pocket friends are creatures and people you can fight and catch.`,
         description: "",
         appearance: "",
         image: "",
+        level: friendLevel(search.level),
+        pocket: pocketSpace(),
+        xp: 0,
+        stats: {
+          hp: 0,
+          hpMax: 0,
+          attack: 0,
+          defense: 0,
+          speed: 0,
+        },
       });
     });
   };
+  const friendLevel = (locationLevel: number) => {
+    // Level from 1 to 100. The higher the location level, the higher possible friend level
+    let level = 1;
+    let chance = Math.floor(Math.random() * 100);
+    if (chance === 100) {
+      level = locationLevel + Math.floor(Math.random() * 20);
+    } else if (chance === 0) {
+      level = locationLevel - Math.floor(Math.random() * 20);
+    } else if (chance > 50) {
+      level = locationLevel + Math.floor(Math.random() * 10);
+    } else {
+      level = locationLevel - Math.floor(Math.random() * 10);
+    }
+    if (level <= 0) level = 1;
+    if (level >= 100) level = 100;
+    console.log(level);
+    return level;
+  };
+  const pocketSpace = () => {
+    // Check if player has place in pocket
+    const pocketSpace = playerStats.pocketSpace;
+    const pocketFriends = friends.filter((friend) => friend.pocket);
+    if (pocketFriends.length >= pocketSpace) return false;
+    return true;
+  };
+
   const addFriend = () => {
     setFriends([...friends, foundFriend]);
     setFriendFound(false);
+    setNotifications([
+      ...notifications,
+      `You've befriended ${foundFriend.name}!`,
+    ]);
   };
+  const generateStats = (types: string[], level?: number) => {
+    let stats = {
+      hp: 0,
+      hpMax: 0,
+      attack: 0,
+      defense: 0,
+      speed: 0,
+    };
+    if (!level) level = 1;
+    stats.hp = Math.floor(Math.random() * 100) + 10 * level;
+    stats.attack = Math.floor(Math.random() * 20) + 2 * level;
+    stats.defense = Math.floor(Math.random() * 20) + 2 * level;
+    stats.speed = Math.floor(Math.random() * 20) + 2 * level;
+    types.forEach((type) => {
+      switch (type) {
+        case "normal":
+          stats.hp *= 1.2;
+          break;
+        case "silly":
+          stats.defense *= 1.2;
+          break;
+        case "darkness":
+          stats.attack *= 1.2;
+          break;
+        case "lame":
+          stats.speed *= 1.2;
+          break;
+        case "famous":
+          stats.hp *= 1.1;
+          stats.defense *= 1.1;
+          break;
+        case "legendary":
+          stats.hp *= 1.5;
+          stats.attack *= 1.5;
+          stats.defense *= 1.5;
+          stats.speed *= 1.5;
+          break;
+        default:
+          break;
+      }
+    });
+    stats.hpMax = stats.hp;
+    console.log(stats);
+    return stats;
+  };
+  /**
+   * Get type of friend
+   * @param locationLevel
+   * @returns
+   */
+  const getType = (locationLevel: number) => {
+    let possibleTypes = Object.keys(types);
+    // remove legendary
+    possibleTypes = possibleTypes.filter((type) => type !== "legendary");
+    const chance = playerStats.level + locationLevel;
+    const roll = Math.floor(Math.random() * 500);
+    if (roll <= chance) {
+      return "legendary";
+    } else {
+      return possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
+    }
+  };
+
   return (
     <main className={styles.main}>
+      <Notifications
+        notifications={notifications}
+        setNotifications={setNotifications}
+      />
       {friendFound && (
         <Modal
           isOpen={friendFound}
-          onClose={() => setFriendFound(false)}
+          // onClose={() => setFriendFound(false)}
+          onClose={() => console.log("close")}
           size="small"
           title="Found a Pocket Friend!"
         >
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
               <h1>{foundFriend.name}</h1>
-              <p>{"(" + foundFriend.types.join("/") + ")"}</p>
+              <p>
+                {"(" +
+                  foundFriend.types.join("/") +
+                  ")" +
+                  "\n" +
+                  `lvl. ${foundFriend.level}`}
+              </p>
             </div>
             <div className={styles.modalBody}>
               <div className={styles.modalImage}>
@@ -246,6 +329,7 @@ Pocket friends are creatures and people you can fight and catch.`,
             </div>
             <div className={styles.modalFooter}>
               <Button onClick={() => addFriend()}>Befriend</Button>
+              <Button onClick={() => setFriendFound(false)}>Ghost</Button>
             </div>
           </div>
         </Modal>
@@ -255,6 +339,8 @@ Pocket friends are creatures and people you can fight and catch.`,
           <Button onClick={() => setTab(0)}>Map</Button>
           <Button onClick={() => setTab(1)}>Friends</Button>
           <Button onClick={() => setTab(2)}>Basement</Button>
+          <Button onClick={() => setTab(3)}>Your Mom's Kitchen</Button>
+          <Button onClick={() => setTab(4)}>Settings</Button>
         </div>
       </div>
       {tab === 0 && <WorldMap map={map} onClick={findPocketFriend} />}
@@ -264,6 +350,12 @@ Pocket friends are creatures and people you can fight and catch.`,
           setFriends={setFriends}
           pockets={pockets}
           setPockets={setPockets}
+        />
+      )}
+      {tab === 2 && (
+        <Fight
+          playerTeam={friends.filter((friend) => friend.pocket)}
+          enemyTeam={[foundFriend]}
         />
       )}
     </main>
