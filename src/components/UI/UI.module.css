@@ -150,7 +150,7 @@
   top: 0;
   left: 0;
   width: 10rem;
-  height: 10rem;
+  height: fit-content;
   background-color: #004c4c;
   z-index: 100;
 }
@@ -182,7 +182,7 @@
   padding: 0.5rem;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
-  border: 1px solid #004c4c;
+  border: 1px solid #fbd80f;
 }
 .dialog {
   position: absolute;

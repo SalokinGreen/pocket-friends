@@ -197,13 +197,13 @@ Pocket friends are creatures and people you can fight and catch. All the pocket 
     let level = 1;
     let chance = Math.floor(Math.random() * 100);
     if (chance === 100) {
-      level = locationLevel + Math.floor(Math.random() * 20);
-    } else if (chance === 0) {
-      level = locationLevel - Math.floor(Math.random() * 20);
-    } else if (chance > 50) {
       level = locationLevel + Math.floor(Math.random() * 10);
-    } else {
+    } else if (chance === 0) {
       level = locationLevel - Math.floor(Math.random() * 10);
+    } else if (chance > 50) {
+      level = locationLevel + Math.floor(Math.random() * 5);
+    } else {
+      level = locationLevel - Math.floor(Math.random() * 5);
     }
     if (level <= 0) level = 1;
     if (level >= 100) level = 100;
@@ -235,7 +235,7 @@ Pocket friends are creatures and people you can fight and catch. All the pocket 
       speed: 0,
     };
     if (!level) level = 1;
-    stats.hp = Math.floor(Math.random() * 100) + 10 * level;
+    stats.hp = Math.floor(Math.random() * 50) + 10 * level;
     stats.attack = Math.floor(Math.random() * 20) + 2 * level;
     stats.defense = Math.floor(Math.random() * 20) + 2 * level;
     stats.speed = Math.floor(Math.random() * 20) + 2 * level;
@@ -272,7 +272,7 @@ Pocket friends are creatures and people you can fight and catch. All the pocket 
     return stats;
   };
   /**
-   * Get type of friend
+   * Get type of friend. The higher the location level and player level, the higher the chance of getting a legendary friend.
    * @param locationLevel
    * @returns
    */

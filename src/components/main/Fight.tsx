@@ -262,7 +262,21 @@ export default function Fight({
       switch (move) {
         case Moves.attack:
           // attack
-          const level = "strong attack";
+          const damage = calculateDamage(player, enemy);
+          const level = getDamageLevel(damage, enemy.stats.hpMax);
+          console.log(damage);
+          console.log(damage);
+          let effect = "";
+          switch (getEffectiveness(player, enemy)) {
+            case 2:
+              effect = ", effective";
+              break;
+            case 0.5:
+              effect = ", ineffective";
+              break;
+            default:
+              break;
+          }
 
           setHeader(`${player.name} attacks ${enemy.name}!`);
           setMessage("Generating...");
@@ -279,9 +293,10 @@ export default function Fight({
               " attacks " +
               enemy.name +
               "\nTraits: " +
-              "strong attack, effective" +
+              `${level}${effect}` +
               "\nDescription:"
           );
+          enemyTeam[enemySelected].stats.hp -= damage;
           break;
         case Moves.defend:
           // defend
@@ -294,6 +309,20 @@ export default function Fight({
       }
       setPlayerTurn(false);
     } else {
+      const damage = calculateDamage(enemy, player);
+      const level = getDamageLevel(damage, player.stats.hpMax);
+      console.log(damage);
+      let effect = "";
+      switch (getEffectiveness(enemy, player)) {
+        case 2:
+          effect = ", effective";
+          break;
+        case 0.5:
+          effect = ", ineffective";
+          break;
+        default:
+          break;
+      }
       setHeader(`${enemy.name} attacks ${player.name}!`);
       setMessage("Generating...");
       generate(
@@ -309,13 +338,51 @@ export default function Fight({
           " attacks " +
           player.name +
           "\nTraits: " +
-          "strong attack, effective" +
+          `${level}${effect}` +
           "\nDescription:"
       );
+      playerTeam[playerSelected].stats.hp -= damage;
+
       setPlayerTurn(true);
     }
   };
-
+  const calculateDamage = (attacker: FriendProps, defender: FriendProps) => {
+    const roll = Math.floor(Math.random() * 100);
+    let crit = false;
+    if (roll > 90 + (defender.level - attacker.level)) {
+      crit = true;
+    }
+    const random = Math.floor(Math.random() * 10);
+    let damage =
+      (attacker.stats.attack / defender.stats.defense) *
+      random *
+      getEffectiveness(attacker, defender);
+    if (damage < 0) {
+      return 1;
+    } else if (crit) {
+      return damage * 2;
+    } else {
+      return damage;
+    }
+  };
+  const getEffectiveness = (attacker: FriendProps, defender: FriendProps) => {
+    let effectiveness = 1;
+    if (types[attacker.types[0]].strong.includes(defender.types[0])) {
+      effectiveness = 2;
+    } else if (types[attacker.types[0]].weak.includes(defender.types[0])) {
+      effectiveness = 0.5;
+    }
+    return effectiveness;
+  };
+  const getDamageLevel = (damage: number, maxHp: number) => {
+    if (damage < maxHp * 0.1) {
+      return "weak attack";
+    } else if (damage > maxHp * 0.8) {
+      return "strong attack";
+    } else {
+      return "average attack";
+    }
+  };
   return (
     <div className={styles.fightContainer}>
       <div className={styles.enemyRow}>
@@ -405,6 +472,7 @@ export default function Fight({
           <MenuItem onClick={() => handleMove(Moves.attack)}>Attack</MenuItem>
           <MenuItem onClick={() => handleMove(Moves.defend)}>Defend</MenuItem>
           <MenuItem onClick={() => handleMove(Moves.special)}>Special</MenuItem>
+          <MenuItem onClick={() => console.log("e")}>Use Item</MenuItem>
           <MenuItem onClick={() => console.log("e")}>Info</MenuItem>
         </Menu>
       )}
