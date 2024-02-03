@@ -8,6 +8,11 @@ import Button from "../UI/Button";
 import axios from "axios";
 
 import { types } from "@/data";
+import Modal from "../UI/Modal";
+
+import { FaHeart, FaShieldAlt, FaBolt, FaFastForward } from "react-icons/fa";
+import { BsFillFastForwardFill } from "react-icons/bs";
+import InfoCard from "./InfoCard";
 
 const fightContext = `⁂
 Mailman vs Mad Dog
@@ -136,6 +141,8 @@ export default function Fight({
   });
   const [header, setHeader] = useState<string>("Your Turn!");
   const [message, setMessage] = useState<string>("Do your best!");
+  const [infoOn, setInfoOn] = useState<boolean>(false);
+  const [infoSelf, setInfoSelf] = useState<boolean>(true);
   useEffect(() => {
     setPlayer(playerTeam);
     setEnemy(enemyTeam);
@@ -210,6 +217,10 @@ export default function Fight({
   };
 
   const handleEnemySelected = (index: number) => {
+    if (index === enemySelected) {
+      handleInfo(false);
+      return;
+    }
     setEnemySelected(index);
     switch (move) {
       case Moves.attack:
@@ -378,10 +389,15 @@ export default function Fight({
     if (damage < maxHp * 0.1) {
       return "weak attack";
     } else if (damage > maxHp * 0.8) {
-      return "strong attack";
+      return "critical attack";
     } else {
-      return "average attack";
+      return "strong attack";
     }
+  };
+  const handleInfo = (self: boolean, place?: number) => {
+    setInfoOn(true);
+    setInfoSelf(self);
+    setOpenMenu(false);
   };
   return (
     <div className={styles.fightContainer}>
@@ -466,14 +482,20 @@ export default function Fight({
           </div>
         ))}
       </div>
-
+      {infoOn && (
+        <Modal onClose={() => setInfoOn(false)} size="small" isOpen={infoOn}>
+          <InfoCard
+            {...(infoSelf ? player[playerSelected] : enemy[enemySelected])}
+          />
+        </Modal>
+      )}
       {openMenu && (
         <Menu position={position} onClose={handleCloseMenu}>
           <MenuItem onClick={() => handleMove(Moves.attack)}>Attack</MenuItem>
           <MenuItem onClick={() => handleMove(Moves.defend)}>Defend</MenuItem>
           <MenuItem onClick={() => handleMove(Moves.special)}>Special</MenuItem>
           <MenuItem onClick={() => console.log("e")}>Use Item</MenuItem>
-          <MenuItem onClick={() => console.log("e")}>Info</MenuItem>
+          <MenuItem onClick={() => handleInfo(true)}>Info</MenuItem>
         </Menu>
       )}
     </div>

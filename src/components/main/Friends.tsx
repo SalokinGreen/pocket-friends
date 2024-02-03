@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "./Main.module.css";
 import Image from "next/image";
 import Chip from "../UI/Chip";
+import InfoCard from "./InfoCard";
+import Modal from "../UI/Modal";
 interface FriendProps {
   name: string;
   types: string[];
@@ -31,10 +33,33 @@ export default function Friends({
   pockets: FriendProps[];
   setPockets: (pockets: FriendProps[]) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const [selectedFriend, setSelectedFriend] = useState<FriendProps | null>(
+    null
+  );
+
+  const handleFriendClick = (friend: FriendProps) => {
+    setSelectedFriend(friend);
+    setOpen(true);
+  };
+
   return (
     <div className={styles.friends}>
+      {selectedFriend && (
+        <Modal
+          isOpen={open}
+          onClose={() => setOpen(false)}
+          size="small"
+          title={selectedFriend.name}
+        >
+          <InfoCard {...selectedFriend} />
+        </Modal>
+      )}
       {friends.map((friend) => (
-        <div className={styles.friendsItem}>
+        <div
+          className={styles.friendsItem}
+          onClick={() => handleFriendClick(friend)}
+        >
           <div className={styles.friendsItemImage}>
             <Image
               src={friend.image}

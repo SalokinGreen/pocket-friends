@@ -11,7 +11,15 @@ type ModalProps = {
   size?: "small" | "medium" | "big";
   title?: string;
 };
-
+/**
+ *
+ * @param isOpen
+ * @param onClose
+ * @param children
+ * @param size small | medium | big
+ * @param title
+ * @returns
+ */
 const Modal: FC<ModalProps> = ({
   isOpen,
   onClose,
