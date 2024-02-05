@@ -45,12 +45,12 @@ export default function Friends({
 
   return (
     <div className={styles.friends}>
-      {selectedFriend && (
+      {open && selectedFriend && (
         <Modal
           isOpen={open}
           onClose={() => setOpen(false)}
           size="small"
-          title={selectedFriend.name}
+          title={selectedFriend.pocket ? "Pocket Friend" : "Friend"}
         >
           <InfoCard {...selectedFriend} />
         </Modal>
@@ -71,7 +71,7 @@ export default function Friends({
           <div className={styles.friendsItemHeader}>
             <div className={styles.friendsItemHead}>
               <h2>{friend.name}</h2>
-              <p>{`lvl. ${friend.level}`}</p>
+              <p>{`${friend.level}`}</p>
             </div>
             <div className={styles.friendsItemTypes}>
               {friend.types.map((type, key) => (

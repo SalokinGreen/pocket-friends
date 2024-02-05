@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import Image from "next/image";
 import styles from "./page.module.css";
 import Button from "@/components/UI/Button";
@@ -44,7 +44,19 @@ interface FriendProps {
   };
 }
 const map: LocationProps[] = [...locations];
-
+enum Params {
+  pro = "pro",
+  insani = "insani",
+  chk = "chk",
+  daemon = "daemon",
+}
+interface SettingsProps {
+  level: number;
+  pocketSpace: number;
+  money: number;
+  items: string[];
+  parameters: Params;
+}
 export default function Home() {
   const [foundFriend, setFoundFriend] = useState<FriendProps>({
     name: "",
@@ -66,13 +78,15 @@ export default function Home() {
   });
   const [friends, setFriends] = useState<FriendProps[]>([]);
   const [pockets, setPockets] = useState<FriendProps[]>([]);
+  const [monsters, setMonsters] = useState<FriendProps[]>([]);
   const [friendFound, setFriendFound] = useState(false);
   const [tab, setTab] = useState(0);
-  const [playerStats, setPlayerStats] = useState({
+  const [playerStats, setPlayerStats] = useState<SettingsProps>({
     level: 1,
     pocketSpace: 1,
     money: 0,
     items: [],
+    parameters: Params.daemon,
   });
   const [notifications, setNotifications] = useState<string[]>([]);
   useEffect(() => {
@@ -83,14 +97,19 @@ export default function Home() {
       setNotifications(newNotifications);
     }
   }, [notifications]);
-
+  useEffect(() => {
+    if (monsters.length <= 0 && tab === 2) {
+      setTab(1);
+    }
+  }, [monsters]);
   const generate = (context: string, friend: FriendProps) => {
     axios
       .post("/api/generate", {
         context: context,
-        key: "NAIKEY",
+        key: "NAIKEYR",
         gens: 1,
         model: "kayra-v1",
+        parameters: playerStats.parameters,
       })
       .then((res) => {
         const result = res.data.results[0];
@@ -128,7 +147,7 @@ export default function Home() {
         "/api/generateImage",
         {
           prompt: prompt,
-          key: "NAIKEY",
+          key: "NAIKEYR",
         }
         // { responseType: "blob" }
       )
@@ -218,12 +237,13 @@ Pocket friends are creatures and people you can fight and catch. All the pocket 
     return true;
   };
 
-  const addFriend = () => {
-    setFriends([...friends, foundFriend]);
+  const addFriend = (newFriend: FriendProps) => {
+    setFriends([...friends, newFriend]);
+    setMonsters(monsters.filter((monster) => monster !== newFriend));
     setFriendFound(false);
     setNotifications([
       ...notifications,
-      `You've befriended ${foundFriend.name}!`,
+      `You've befriended ${newFriend.name}!`,
     ]);
   };
   const generateStats = (types: string[], level?: number) => {
@@ -235,33 +255,33 @@ Pocket friends are creatures and people you can fight and catch. All the pocket 
       speed: 0,
     };
     if (!level) level = 1;
-    stats.hp = Math.floor(Math.random() * 50) + 10 * level;
-    stats.attack = Math.floor(Math.random() * 20) + 2 * level;
-    stats.defense = Math.floor(Math.random() * 20) + 2 * level;
-    stats.speed = Math.floor(Math.random() * 20) + 2 * level;
+    stats.hp = Math.floor(Math.random() * 10) + 5 * level;
+    stats.attack = Math.floor(Math.random() * 5) + 2 * level;
+    stats.defense = Math.floor(Math.random() * 5) + 2 * level;
+    stats.speed = Math.floor(Math.random() * 5) + 2 * level;
     types.forEach((type) => {
       switch (type) {
         case "normal":
-          stats.hp *= 1.2;
+          stats.hp *= 1.1;
           break;
         case "silly":
-          stats.defense *= 1.2;
-          break;
-        case "darkness":
-          stats.attack *= 1.2;
-          break;
-        case "lame":
-          stats.speed *= 1.2;
-          break;
-        case "famous":
-          stats.hp *= 1.1;
           stats.defense *= 1.1;
           break;
+        case "darkness":
+          stats.attack *= 1.1;
+          break;
+        case "lame":
+          stats.speed *= 1.1;
+          break;
+        case "famous":
+          stats.hp *= 1.05;
+          stats.defense *= 1.05;
+          break;
         case "legendary":
-          stats.hp *= 1.5;
-          stats.attack *= 1.5;
-          stats.defense *= 1.5;
-          stats.speed *= 1.5;
+          stats.hp *= 1.25;
+          stats.attack *= 1.25;
+          stats.defense *= 1.25;
+          stats.speed *= 1.25;
           break;
         default:
           break;
@@ -288,7 +308,15 @@ Pocket friends are creatures and people you can fight and catch. All the pocket 
       return possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
     }
   };
-
+  const battleFriend = () => {
+    if (friends.length <= 0) {
+      addFriend(foundFriend);
+      return;
+    }
+    setMonsters([...monsters, foundFriend]);
+    setTab(2);
+    setFriendFound(false);
+  };
   return (
     <main className={styles.main}>
       <Notifications
@@ -311,7 +339,7 @@ Pocket friends are creatures and people you can fight and catch. All the pocket 
                   foundFriend.types.join("/") +
                   ")" +
                   "\n" +
-                  `lvl. ${foundFriend.level}`}
+                  `${foundFriend.level}`}
               </p>
             </div>
             <div className={styles.modalBody}>
@@ -328,7 +356,7 @@ Pocket friends are creatures and people you can fight and catch. All the pocket 
               </div>
             </div>
             <div className={styles.modalFooter}>
-              <Button onClick={() => addFriend()}>Befriend</Button>
+              <Button onClick={() => battleFriend()}>Befriend</Button>
               <Button onClick={() => setFriendFound(false)}>Ghost</Button>
             </div>
           </div>
@@ -355,7 +383,9 @@ Pocket friends are creatures and people you can fight and catch. All the pocket 
       {tab === 2 && (
         <Fight
           playerTeam={friends.filter((friend) => friend.pocket)}
-          enemyTeam={[foundFriend]}
+          enemyTeam={monsters}
+          settings={playerStats}
+          addFriend={addFriend}
         />
       )}
     </main>

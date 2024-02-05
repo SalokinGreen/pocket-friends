@@ -186,12 +186,24 @@
   background-color: #fbd80f;
   border-radius: 0.25rem;
   border: 1px solid #fbd80f;
+  text-align: center;
+  font-weight: bold;
 }
 .lifeBarFillHealthy {
   height: 100%;
   background-color: #00ff00;
   border-radius: 0.25rem;
   border: 1px solid #00ff00;
+  text-align: center;
+  font-weight: bold;
+}
+.lifeBarFillDead {
+  height: 100%;
+  background-color: #ff0000;
+  border-radius: 0.25rem;
+  border: 1px solid #ff0000;
+  text-align: center;
+  font-weight: bold;
 }
 .fight {
   background-color: #004c4c;
@@ -252,7 +264,8 @@
 .infoText {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.69rem;
+  margin-top: 1rem;
   align-items: center;
   justify-content: center;
 }

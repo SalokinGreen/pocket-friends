@@ -52,23 +52,29 @@ export default function InfoCard(friend: FriendProps) {
           <div className={styles.infoStatRow}>
             <div className={styles.infoStat}>
               <FaShieldAlt size={32} />
-              <p>{friend.stats.defense}</p>
+              <p>{Math.floor(friend.stats.defense)}</p>
             </div>
             <div className={styles.infoStat}>
               <FaBolt size={32} />
-              <p>{friend.stats.attack}</p>
+              <p>{Math.floor(friend.stats.attack)}</p>
             </div>
             <div className={styles.infoStat}>
               <BsFillFastForwardFill size={32} />
-              <p>{friend.stats.speed}</p>
+              <p>{Math.floor(friend.stats.speed)}</p>
             </div>
           </div>
         </div>
         <div className={styles.infoText}>
-          <h3>Types</h3>
-          <p>{friend.types.join(", ")}</p>
-          <h3>Location</h3>
-          <p>{friend.location.join(", ")}</p>
+          <div className={styles.infoStatRow}>
+            <div className={styles.infoStat}>
+              <h3>Types</h3>
+              <p>{friend.types.join(", ")}</p>
+            </div>
+            <div className={styles.infoStat}>
+              <h3>Location</h3>
+              <p>{friend.location.join(", ")}</p>
+            </div>
+          </div>
           <h3>Description</h3>
           <p>{friend.description}</p>
           <h3>Appearance</h3>

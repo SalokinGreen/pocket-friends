@@ -30,11 +30,13 @@ Description: This hound has gone mad and is looking for a fight. He's dangerous,
 Appearance: Mad Dog, 1 dog, mutt, mean, strong, short tempered, sharp claws
 ***
 Mailman attacks Mad Dog
-Traits: weak attack, effective
+Type: effective attack
+Damage: little
 Description: The mailman grabs a big package and smashes it over Mad Dog's head, stunning him for a few moments.
 ***
 Mad Dog attacks Mailman
-Traits: strong attack, ineffective
+Type: ineffective attack
+Damage: large
 Description: The dog tears into the mailman, breaking his arm.
 ⁂
 Grandpa vs Hobo
@@ -52,11 +54,13 @@ Description: A smelly bum who lives on the streets. They'll mug you if you don't
 Appearance: Hobo, 1 man, dirty, poor, homeless, ugly, torn clothes
 ***
 Grandpa attacks Hobo
-Traits: average attack, effective
+Type: effective attack
+damage: medium
 Description: Grandpa slowly walks over to Hobo and hits his private parts with his cane.
 ***
 Hobo attacks Grandpa
-Traits: weak attack, ineffective
+Type: ineffective attack
+Damage: little
 Description: Hobo laughs at Grandpa before spitting in his eye.
 ⁂
 Street Dealer vs Celeb Chef
@@ -74,11 +78,13 @@ Description: You may not have heard of the famed chef, but after one bite of his
 Appearance: Celeb Chef, 1 human, short, cute, white tuxedo, chefs hat, trim goatee
 ***
 Celeb Chef attacks Street Dealer
-Traits: strong attack, normal effect
+Type: normal effect
+Damage: medium
 Description: The Celeb Chef runs up and whacks the dealer's hand so she'll stop shaking so much.
 ***
 Street Dealer attacks Celeb Chef
-Traits: normal attack, effective
+Type: effective attack
+Damage: medium
 Description: The dealer grabs her bag of stuff, and jabs it into the chef. The contents break a few of his teeth.
 ⁂`;
 interface FriendProps {
@@ -118,13 +124,29 @@ interface TurnProps {
   side: string;
   move: SpecialMoves;
 }
-
+enum Params {
+  pro = "pro",
+  insani = "insani",
+  chk = "chk",
+  daemon = "daemon",
+}
+interface SettingsProps {
+  level: number;
+  pocketSpace: number;
+  money: number;
+  items: string[];
+  parameters: Params;
+}
 export default function Fight({
   playerTeam,
   enemyTeam,
+  settings,
+  addFriend,
 }: {
   playerTeam: FriendProps[];
   enemyTeam: FriendProps[];
+  settings: SettingsProps;
+  addFriend: (friend: FriendProps) => void;
 }) {
   const [player, setPlayer] = useState<FriendProps[]>(playerTeam);
   const [enemy, setEnemy] = useState<FriendProps[]>(enemyTeam);
@@ -147,6 +169,18 @@ export default function Fight({
     setPlayer(playerTeam);
     setEnemy(enemyTeam);
   }, [playerTeam, enemyTeam]);
+
+  // check if enemy is knocked out and add to player's pocket
+  useEffect(() => {
+    enemy.forEach((enemy2) => {
+      if (enemy2.stats.hp <= 1) {
+        addFriend(enemy2);
+
+        setEnemy(enemy.filter((e) => e !== enemy2));
+        enemy2.stats.hp = enemy2.stats.hpMax;
+      }
+    });
+  }, [enemy]);
   // useEffect(() => {
   //   if (playerTurn) {
   //     setHeader("YOUR TURN");
@@ -249,13 +283,16 @@ export default function Fight({
     axios
       .post("/api/generate", {
         context: fightContext + "\n" + context,
-        key: "NAIKEY",
+        key: "NAIKEYR",
         gens: 1,
         model: "kayra-v1",
+        parameters: settings.parameters,
       })
       .then((res) => {
         console.log(res.data);
         result = res.data.results[0].split("***")[0];
+        result = result.replace("⁂", "");
+        result = result.replace("---", "");
         setMessage(result);
       })
       .catch((err) => {
@@ -276,14 +313,14 @@ export default function Fight({
           const damage = calculateDamage(player, enemy);
           const level = getDamageLevel(damage, enemy.stats.hpMax);
           console.log(damage);
-          console.log(damage);
-          let effect = "";
+
+          let effect = "normal attack";
           switch (getEffectiveness(player, enemy)) {
             case 2:
-              effect = ", effective";
+              effect = "effective attack";
               break;
             case 0.5:
-              effect = ", ineffective";
+              effect = "ineffective attack";
               break;
             default:
               break;
@@ -303,8 +340,8 @@ export default function Fight({
               player.name +
               " attacks " +
               enemy.name +
-              "\nTraits: " +
-              `${level}${effect}` +
+              `\nType: ${effect}` +
+              `\nDamage: ${level}` +
               "\nDescription:"
           );
           enemyTeam[enemySelected].stats.hp -= damage;
@@ -323,13 +360,13 @@ export default function Fight({
       const damage = calculateDamage(enemy, player);
       const level = getDamageLevel(damage, player.stats.hpMax);
       console.log(damage);
-      let effect = "";
+      let effect = "normal attack";
       switch (getEffectiveness(enemy, player)) {
         case 2:
-          effect = ", effective";
+          effect = "effective attack";
           break;
         case 0.5:
-          effect = ", ineffective";
+          effect = "ineffective attack";
           break;
         default:
           break;
@@ -348,8 +385,8 @@ export default function Fight({
           enemy.name +
           " attacks " +
           player.name +
-          "\nTraits: " +
-          `${level}${effect}` +
+          `\nType: ${effect}` +
+          `\nDamage: ${level}` +
           "\nDescription:"
       );
       playerTeam[playerSelected].stats.hp -= damage;
@@ -368,7 +405,7 @@ export default function Fight({
       (attacker.stats.attack / defender.stats.defense) *
       random *
       getEffectiveness(attacker, defender);
-    if (damage < 0) {
+    if (damage <= 0) {
       return 1;
     } else if (crit) {
       return damage * 2;
@@ -387,11 +424,11 @@ export default function Fight({
   };
   const getDamageLevel = (damage: number, maxHp: number) => {
     if (damage < maxHp * 0.1) {
-      return "weak attack";
+      return "little";
     } else if (damage > maxHp * 0.8) {
-      return "critical attack";
+      return "large";
     } else {
-      return "strong attack";
+      return "medium";
     }
   };
   const handleInfo = (self: boolean, place?: number) => {
@@ -418,18 +455,30 @@ export default function Fight({
               <p>{`lvl. ${enemy.level}`}</p>
               <div className={styles.life}>
                 <div className={styles.lifeBar}>
-                  <div
-                    className={
-                      (enemy.stats.hp / enemy.stats.hpMax) * 100 > 50
-                        ? styles.lifeBarFillHealthy
-                        : styles.lifeBarFillDangerous
-                    }
-                    style={{
-                      width: `${
-                        (enemy.stats.hp / enemy.stats.hpMax) * 100 || 0
-                      }%`,
-                    }}
-                  ></div>
+                  {enemy.stats.hp > 0 ? (
+                    <div
+                      className={
+                        (enemy.stats.hp / enemy.stats.hpMax) * 100 > 50
+                          ? styles.lifeBarFillHealthy
+                          : styles.lifeBarFillDangerous
+                      }
+                      style={{
+                        width: `${
+                          (enemy.stats.hp / enemy.stats.hpMax) * 100 || 0
+                        }%`,
+                      }}
+                    >
+                      {Math.floor(enemy.stats.hp)} /{" "}
+                      {Math.floor(enemy.stats.hpMax)}
+                    </div>
+                  ) : (
+                    <div
+                      className={styles.lifeBarFillDead}
+                      style={{ width: "100%" }}
+                    >
+                      KO
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -464,18 +513,30 @@ export default function Fight({
               <p>{`lvl. ${player.level}`}</p>
               <div className={styles.life}>
                 <div className={styles.lifeBar}>
-                  <div
-                    className={
-                      (player.stats.hp / player.stats.hpMax) * 100 > 50
-                        ? styles.lifeBarFillHealthy
-                        : styles.lifeBarFillDangerous
-                    }
-                    style={{
-                      width: `${
-                        (player.stats.hp / player.stats.hpMax) * 100 || 0
-                      }%`,
-                    }}
-                  ></div>
+                  {player.stats.hp > 0 ? (
+                    <div
+                      className={
+                        (player.stats.hp / player.stats.hpMax) * 100 > 50
+                          ? styles.lifeBarFillHealthy
+                          : styles.lifeBarFillDangerous
+                      }
+                      style={{
+                        width: `${
+                          (player.stats.hp / player.stats.hpMax) * 100 || 0
+                        }%`,
+                      }}
+                    >
+                      {Math.floor(player.stats.hp)} /{" "}
+                      {Math.floor(player.stats.hpMax)}
+                    </div>
+                  ) : (
+                    <div
+                      className={styles.lifeBarFillDead}
+                      style={{ width: "100%" }}
+                    >
+                      KO
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
