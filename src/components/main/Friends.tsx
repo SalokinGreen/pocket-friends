@@ -22,16 +22,33 @@ interface FriendProps {
     speed: number;
   };
 }
+enum Params {
+  pro = "pro",
+  insani = "insani",
+  chk = "chk",
+  daemon = "daemon",
+}
+interface SettingsProps {
+  level: number;
+  pocketSpace: number;
+  money: number;
+  items: string[];
+  parameters: Params;
+}
 export default function Friends({
   friends,
   setFriends,
   pockets,
   setPockets,
+  settings,
+  addMessage,
 }: {
   friends: FriendProps[];
   setFriends: (friends: FriendProps[]) => void;
   pockets: FriendProps[];
   setPockets: (pockets: FriendProps[]) => void;
+  settings: SettingsProps;
+  addMessage: (message: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState<FriendProps | null>(
@@ -42,7 +59,23 @@ export default function Friends({
     setSelectedFriend(friend);
     setOpen(true);
   };
-
+  const handlePockeClick = (friend: FriendProps) => {
+    if (friend.pocket) {
+      friend.pocket = false;
+      setFriends(friends.map((f) => (f === friend ? friend : f)));
+      addMessage(`${friend.name} removed from your pockets!`);
+    } else {
+      const pocket = friends.filter((f) => f.pocket);
+      if (pocket.length < settings.pocketSpace) {
+        friend.pocket = true;
+        setFriends(friends.map((f) => (f.name === friend.name ? friend : f)));
+        setPockets([...pockets, friend]);
+        addMessage(`${friend.name} added to your pockets!`);
+      } else {
+        addMessage("No more space in your pockets!");
+      }
+    }
+  };
   return (
     <div className={styles.friends}>
       {open && selectedFriend && (
@@ -52,7 +85,7 @@ export default function Friends({
           size="small"
           title={selectedFriend.pocket ? "Pocket Friend" : "Friend"}
         >
-          <InfoCard {...selectedFriend} />
+          <InfoCard friend={selectedFriend} pocketClick={handlePockeClick} />
         </Modal>
       )}
       {friends.map((friend) => (

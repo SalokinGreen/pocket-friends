@@ -23,7 +23,14 @@ interface FriendProps {
     speed: number;
   };
 }
-export default function InfoCard(friend: FriendProps) {
+export default function InfoCard({
+  friend,
+  pocketClick,
+}: {
+  friend: FriendProps;
+  pocketClick: (fried: FriendProps) => void;
+}) {
+  console.log;
   return (
     <div className={styles.infoContainer}>
       <div className={styles.infoContent}>
@@ -34,6 +41,8 @@ export default function InfoCard(friend: FriendProps) {
               alt={friend.name}
               width={255}
               height={255}
+              onClick={() => pocketClick(friend)}
+              style={{ cursor: "pointer" }}
             />
           </div>
           <h1>

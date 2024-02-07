@@ -106,7 +106,7 @@ export default function Home() {
     axios
       .post("/api/generate", {
         context: context,
-        key: "NAIKEYR",
+        key: "NAIKEY",
         gens: 1,
         model: "kayra-v1",
         parameters: playerStats.parameters,
@@ -147,7 +147,7 @@ export default function Home() {
         "/api/generateImage",
         {
           prompt: prompt,
-          key: "NAIKEYR",
+          key: "NAIKEY",
         }
         // { responseType: "blob" }
       )
@@ -317,6 +317,9 @@ Pocket friends are creatures and people you can fight and catch. All the pocket 
     setTab(2);
     setFriendFound(false);
   };
+  const addMessage = (message: string) => {
+    setNotifications([...notifications, message]);
+  };
   return (
     <main className={styles.main}>
       <Notifications
@@ -378,6 +381,8 @@ Pocket friends are creatures and people you can fight and catch. All the pocket 
           setFriends={setFriends}
           pockets={pockets}
           setPockets={setPockets}
+          settings={playerStats}
+          addMessage={addMessage}
         />
       )}
       {tab === 2 && (

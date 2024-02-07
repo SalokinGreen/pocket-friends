@@ -283,7 +283,7 @@ export default function Fight({
     axios
       .post("/api/generate", {
         context: fightContext + "\n" + context,
-        key: "NAIKEYR",
+        key: "NAIKEY",
         gens: 1,
         model: "kayra-v1",
         parameters: settings.parameters,
@@ -355,6 +355,7 @@ export default function Fight({
         default:
           break;
       }
+      collectEnemy();
       setPlayerTurn(false);
     } else {
       const damage = calculateDamage(enemy, player);
@@ -390,7 +391,7 @@ export default function Fight({
           "\nDescription:"
       );
       playerTeam[playerSelected].stats.hp -= damage;
-
+      checkDefeat();
       setPlayerTurn(true);
     }
   };
@@ -436,6 +437,33 @@ export default function Fight({
     setInfoSelf(self);
     setOpenMenu(false);
   };
+  const collectEnemy = () => {
+    let foundAlive = false;
+    enemyTeam.forEach((enemy) => {
+      if (enemy.stats.hp <= 0) {
+        addFriend(enemy);
+        setEnemy(enemyTeam.filter((e) => e !== enemy));
+      } else {
+        foundAlive = true;
+      }
+    });
+    if (!foundAlive) {
+      win();
+    }
+  };
+  const checkDefeat = () => {
+    const surivors = player.filter((p) => p.stats.hp > 0);
+    if (surivors.length === 0) {
+      lose();
+    }
+  };
+  const win = () => {
+    console.log("win");
+  };
+  const lose = () => {
+    console.log("lose");
+  };
+
   return (
     <div className={styles.fightContainer}>
       <div className={styles.enemyRow}>
@@ -546,7 +574,8 @@ export default function Fight({
       {infoOn && (
         <Modal onClose={() => setInfoOn(false)} size="small" isOpen={infoOn}>
           <InfoCard
-            {...(infoSelf ? player[playerSelected] : enemy[enemySelected])}
+            friend={infoSelf ? player[playerSelected] : enemy[enemySelected]}
+            pocketClick={() => console.log("e")}
           />
         </Modal>
       )}
